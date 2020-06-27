@@ -35,6 +35,9 @@ public class SongSortInterface : MonoBehaviour
     private Text m_progressText;
 
     [SerializeField]
+    private Text m_statsText;
+
+    [SerializeField]
     private RawImage m_albumArtDisplay;
 
     [SerializeField]
@@ -63,8 +66,6 @@ public class SongSortInterface : MonoBehaviour
 
     private bool m_isImporting = false;
     private Queue<string> m_songFiles = new Queue<string>();
-
-    private int m_startingNumberOfSongs = 0;
 
     private SongPlayer m_songPlayer;
     private AudioImporter m_importer;
@@ -143,7 +144,6 @@ public class SongSortInterface : MonoBehaviour
         m_approvalSound.loop = false;
         m_rejectionSound.loop = false;
 
-        m_startingNumberOfSongs = m_songFiles.Count;
         m_timeSlider.onValueChanged.AddListener(delegate { TimeSliderChanged(); });
 
         InitializeNextSong();
@@ -185,6 +185,22 @@ public class SongSortInterface : MonoBehaviour
         m_instructionsLayer.SetActive(Input.GetKey(KeyCode.F1));
     }
 
+    private void UpdateStats()
+    {
+        DirectoryInfo sourceInfo = new DirectoryInfo(m_songFolderSourceSongs);
+        DirectoryInfo approveInfo = new DirectoryInfo(m_songFolderApprovedSongs);
+        DirectoryInfo rejectInfo = new DirectoryInfo(m_songFolderRejectedSongs);
+
+        var sourceFileCount = sourceInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+        var approveFileCount = approveInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+        var rejectInfoFileCount = rejectInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+
+        var fractionComplete = (float)(approveFileCount + rejectInfoFileCount) / (float)(sourceFileCount + approveFileCount + rejectInfoFileCount);
+
+        m_progressText.text = $"[ {approveFileCount + rejectInfoFileCount}/{sourceFileCount + approveFileCount + rejectInfoFileCount} {fractionComplete:0.00%} ]";
+        m_statsText.text = $"Stats:\n - Approved: {approveFileCount}\n - Rejected: {rejectInfoFileCount}\n - Remain: {sourceFileCount}\n - Total:{sourceFileCount + approveFileCount + rejectInfoFileCount}\n - Progress: {fractionComplete:0.00%}";
+    }
+
     private void InitializeNextSong()
     {
         // RPB: Get the next song in list path, but check it still exists.
@@ -197,7 +213,7 @@ public class SongSortInterface : MonoBehaviour
 
         m_currentFilePath = m_songFiles.Dequeue();
 
-        m_progressText.text = $"[ {m_startingNumberOfSongs - m_songFiles.Count} / {m_startingNumberOfSongs} ]";
+        UpdateStats();
 
         InitializeSongFromPath(m_currentFilePath);
     }
