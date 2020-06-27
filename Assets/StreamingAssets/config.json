@@ -1,0 +1,9 @@
+{
+  "DefaultSourceDirectory": "testDir",
+  "SkipBrowserDialogOnOpen": false,
+  "RandomizeOrder": false,
+  "OverrideAcceptDirectory": false,
+  "OverrideRejectDirectory": false,
+  "OverrideAcceptDirectoryPath": "testDir",
+  "OverrideRejectDirectoryPath": "testDir"
+}
