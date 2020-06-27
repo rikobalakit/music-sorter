@@ -10,3 +10,7 @@ You can press the "Left" arrow key to reject the song (moving it into a folder o
 You can press the "Right" arrow key to accept a song (moving it into a folder of accepted tracks)
 
 There is a configuration file that will continue to expand with more options. Current options include setting an override directory for the accepted tracks, randomizing track playback order, and more.
+
+![alt text](https://github.com/ricobalakit/music-sorter/blob/master/Application.Network.StudioMonitor.x64_VChtKxKAFi.png?raw=true)
+
+![alt text](https://github.com/ricobalakit/music-sorter/blob/master/Application.Network.StudioMonitor.x64_h2ekMcTmHQ.png?raw=true)
