@@ -198,7 +198,7 @@ public class SongSortInterface : MonoBehaviour
         var fractionComplete = (float)(approveFileCount + rejectInfoFileCount) / (float)(sourceFileCount + approveFileCount + rejectInfoFileCount);
 
         m_progressText.text = $"[ {approveFileCount + rejectInfoFileCount}/{sourceFileCount + approveFileCount + rejectInfoFileCount} {fractionComplete:0.00%} ]";
-        m_statsText.text = $"Stats:\n - Approved: {approveFileCount}\n - Rejected: {rejectInfoFileCount}\n - Remain: {sourceFileCount}\n - Total:{sourceFileCount + approveFileCount + rejectInfoFileCount}\n - Progress: {fractionComplete:0.00%}";
+        m_statsText.text = $"Stats:\n - Approved: {approveFileCount}\n - Rejected: {rejectInfoFileCount}\n - Remain: {sourceFileCount}\n - Total:{sourceFileCount + approveFileCount + rejectInfoFileCount}\n - Progress: {fractionComplete:0.00%}\n - Approval Ratio: {(float)approveFileCount/(float)(approveFileCount + rejectInfoFileCount):0.00%}";
     }
 
     private void InitializeNextSong()
