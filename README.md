@@ -1,5 +1,5 @@
 # music-sorter
-Provides a Tinder-esque interface to sorting massive loads of music, quickly.
+Provides a Tinderesque interface to sorting massive loads of music, quickly.
 
 This app was developed in order to figure out a quick and idiot-proof workflow to sort thousands of songs quickly, spending under 30 seconds per track, with minimal controls. You can use this laying down in bed as long as you can feel your way to the left/right arrow keys!
 
@@ -11,6 +11,6 @@ You can press the "Right" arrow key to accept a song (moving it into a folder of
 
 There is a configuration file that will continue to expand with more options. Current options include setting an override directory for the accepted tracks, randomizing track playback order, and more.
 
-![alt text](https://github.com/ricobalakit/music-sorter/blob/master/Application.Network.StudioMonitor.x64_VChtKxKAFi.png?raw=true)
+![alt text](https://github.com/ricobalakit/music-sorter/blob/master/graphic1.png?raw=true)
 
-![alt text](https://github.com/ricobalakit/music-sorter/blob/master/Application.Network.StudioMonitor.x64_h2ekMcTmHQ.png?raw=true)
+![alt text](https://github.com/ricobalakit/music-sorter/blob/master/graphic2.png?raw=true)
