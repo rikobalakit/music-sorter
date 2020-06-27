@@ -8,19 +8,16 @@ public class SongPlayer : MonoBehaviour
 
     #region Private Fields
 
-    [SerializeField]
     private int m_partsToListenTo = 5;
-
-    [SerializeField]
     private float m_partPlaybackTimeSeconds = 5f;
-
-    [SerializeField]
     private float m_partPlaybackFadeTimeSeconds = 0.5f; // RPB: Must be less than half of playbacktime
-
-    [SerializeField]
     private AudioSource m_audioSource;
 
     private Coroutine m_songPlayCoroutine;
+
+    #endregion
+
+    #region Public Properties
 
     public bool IsPlaying
     {
@@ -36,8 +33,28 @@ public class SongPlayer : MonoBehaviour
 
     #region Public Methods
 
+    public void InitializeSettings(AudioSource audioSource, int parts, float fadeTimeSeconds, float sectionPlayTimeSeconds, float maxSectionPlaybackTime)
+    {
+        if(audioSource == null)
+        {
+            Debug.LogError("Audiosource cannot be null!");
+            return;
+        }
+
+        m_partsToListenTo = parts;
+        m_partPlaybackTimeSeconds = sectionPlayTimeSeconds;
+        m_partPlaybackFadeTimeSeconds = fadeTimeSeconds;
+        m_audioSource = audioSource;
+}
+
     public void PlaySongParts(AudioClip songClip)
     {
+        if (m_audioSource == null)
+        {
+            Debug.LogError("m_audioSource cannot be null!");
+            return;
+        }
+
         if (m_songPlayCoroutine != null)
         {
             StopPlayback();
@@ -59,6 +76,19 @@ public class SongPlayer : MonoBehaviour
 
     private IEnumerator PlaySongPartsCoroutine(AudioClip songClip)
     {
+        if (m_audioSource == null)
+        {
+            Debug.LogError("m_audioSource cannot be null!");
+            yield break;
+        }
+
+        if (songClip == null)
+        {
+            Debug.LogError("songClip cannot be null!");
+            yield break;
+        }
+
+
         var lengthPerPart = songClip.length / m_partsToListenTo;
 
         m_audioSource.clip = songClip;

@@ -10,11 +10,11 @@ using System.Linq;
 
 public class SongSortInterface : MonoBehaviour
 {
-    [SerializeField]
-    private SongPlayer m_songPlayer;
+
+    #region Private Fields
 
     [SerializeField]
-    private AudioImporter m_importer;
+    private AudioSource m_mainSound;
 
     [SerializeField]
     private AudioSource m_approvalSound;
@@ -46,6 +46,12 @@ public class SongSortInterface : MonoBehaviour
     [SerializeField]
     private GameObject m_instructionsLayer;
 
+    [SerializeField]
+    private int m_partsToListenTo = 6;
+
+    [SerializeField]
+    private float m_partPlaybackFadeTimeSeconds = 0.5f;
+
     private string m_currentFilePath;
 
     private string m_songFolderApprovedSongs;
@@ -60,10 +66,30 @@ public class SongSortInterface : MonoBehaviour
 
     private int m_startingNumberOfSongs = 0;
 
+    private SongPlayer m_songPlayer;
+    private AudioImporter m_importer;
+
+    #endregion
+
+    #region Private Methods
+
     private void Start()
     {
+        m_songPlayer = gameObject.AddComponent<SongPlayer>();
+        m_songPlayer.InitializeSettings(m_mainSound, m_partsToListenTo, m_partPlaybackFadeTimeSeconds, m_timeSlider.value, m_timeSlider.maxValue);
+
+        m_importer = gameObject.AddComponent<NAudioImporter>();
+
+        m_statusText.text = "[ SYSTEM ] Press (F1) for controls";
+
         var configurationReader = gameObject.AddComponent<ConfigurationReader>();
         var configuration = configurationReader.GetConfiguration();
+
+        if (configuration == null)
+        {
+            m_statusText.text = "[ ERROR ] Config file not found... falling back to default values";
+            configuration = new SongSortConfiguration();
+        }
 
         if (configuration.SkipBrowserDialogOnOpen)
         {
@@ -118,9 +144,6 @@ public class SongSortInterface : MonoBehaviour
         m_rejectionSound.loop = false;
 
         m_startingNumberOfSongs = m_songFiles.Count;
-
-        m_statusText.text = "[ SYSTEM ] Ready! Press (F1) for controls";
-
         m_timeSlider.onValueChanged.AddListener(delegate { TimeSliderChanged(); });
 
         InitializeNextSong();
@@ -160,11 +183,6 @@ public class SongSortInterface : MonoBehaviour
         }
 
         m_instructionsLayer.SetActive(Input.GetKey(KeyCode.F1));
-    }
-
-    private void InitializeSongList()
-    {
-        // RPB: Get all the files in the Source directory and put it into a list... or queue?
     }
 
     private void InitializeNextSong()
@@ -257,12 +275,9 @@ public class SongSortInterface : MonoBehaviour
         }
 
         m_songPlayer.StopPlayback();
-        // RPB: Move file to Approve folder
-
         StartCoroutine(TryMoveFile(m_currentFilePath, m_songFolderApprovedSongs + "\\" + Path.GetFileName(m_currentFilePath)));
-
         m_statusText.text = $"[ SYSTEM ] Accepted {Path.GetFileNameWithoutExtension(m_currentFilePath)}";
-        // RPB: Play an approval sound
+
         m_approvalSound.Play();
         InitializeNextSong();
     }
@@ -275,9 +290,7 @@ public class SongSortInterface : MonoBehaviour
         }
 
         m_songPlayer.StopPlayback();
-        // RPB: Move file to Reject folder
         m_statusText.text = $"[ SYSTEM ] Rejected {Path.GetFileNameWithoutExtension(m_currentFilePath)}";
-        // RPB: Play a rejection sound
         StartCoroutine(TryMoveFile(m_currentFilePath, m_songFolderRejectedSongs + "\\" + Path.GetFileName(m_currentFilePath)));
 
         m_rejectionSound.Play();
@@ -293,7 +306,6 @@ public class SongSortInterface : MonoBehaviour
 
         m_songPlayer.StopPlayback();
         m_statusText.text = $"[ SYSTEM ] Skipped {Path.GetFileNameWithoutExtension(m_currentFilePath)}";
-        // RPB: Play an approval sound
         m_skipSound.Play();
         InitializeNextSong();
     }
@@ -342,4 +354,7 @@ public class SongSortInterface : MonoBehaviour
             m_statusText.text = $"Failed to move {oldPath}";
         }
     }
+
+    #endregion
+
 }
