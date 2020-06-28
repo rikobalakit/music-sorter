@@ -107,13 +107,15 @@ public class SongPlayer : MonoBehaviour
 
         yield return new WaitUntil(() => m_audioSource.clip.loadState == AudioDataLoadState.Loaded);
 
+        m_audioSource.time = 0f;
+
         while (true)
         {
             if (m_fullPlayOn)
             {
                 if (m_audioSource.volume != 0f)
                 {
-                    m_audioSource.volume += (Time.deltaTime) / m_partPlaybackFadeTimeSeconds;
+                    m_audioSource.volume += (Time.deltaTime)/m_partPlaybackFadeTimeSeconds;
                 }
 
                 if (!m_audioSource.isPlaying)
@@ -162,6 +164,11 @@ public class SongPlayer : MonoBehaviour
                     m_isHolding = false;
 
                     crossfadeStartTime = Time.time;
+
+                    if (m_fullPlayOn)
+                    {
+                        break;
+                    }
 
                     while (Time.time < crossfadeStartTime + m_partPlaybackFadeTimeSeconds)
                     {
