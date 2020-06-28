@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
@@ -37,11 +38,37 @@ public class SongSortConfiguration
     public string DefaultSourceDirectory = "testDir";
     public bool SkipBrowserDialogOnOpen = false;
     public bool RandomizeOrder = false;
-    public bool OverrideAcceptDirectory = false;
-    public bool OverrideRejectDirectory = false;
-    public string OverrideAcceptDirectoryPath = "testDir";
-    public string OverrideRejectDirectoryPath = "testDir";
+    public FolderHotkeyMapping[] FolderHotkeyMapping = null;
+    public string SkipSongKeyCodeString = "DownArrow";
+    public string LaunchSongKeyCodeString = "UpArrow";
+    public string HoldSongKeyCodeString = "Space";
 
     #endregion
 
+}
+
+[Serializable]
+public class FolderHotkeyMapping
+{
+
+    #region Public Fields
+
+    public string FolderPath = "testDir";
+    public string KeyCodeString = "";
+    public bool PathRelative = true;
+    public string UiSoundPath = "testFile";
+
+    #endregion
+
+    #region Public Constructors
+
+    public FolderHotkeyMapping(string folderPath, bool pathRelative, string keyCodeString, string uiSoundPath)
+    {
+        FolderPath = folderPath;
+        PathRelative = pathRelative;
+        KeyCodeString = keyCodeString;
+        UiSoundPath = uiSoundPath;
+    }
+
+    #endregion
 }

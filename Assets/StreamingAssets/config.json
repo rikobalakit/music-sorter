@@ -2,8 +2,21 @@
   "DefaultSourceDirectory": "testDir",
   "SkipBrowserDialogOnOpen": false,
   "RandomizeOrder": false,
-  "OverrideAcceptDirectory": false,
-  "OverrideRejectDirectory": false,
-  "OverrideAcceptDirectoryPath": "testDir",
-  "OverrideRejectDirectoryPath": "testDir"
+  "FolderHotkeyMapping": [
+    {
+      "FolderPath": "Approved",
+      "KeyCodeString": "RightArrow",
+      "PathRelative": true,
+      "UiSoundPath": "ApproveSound.wav"
+    },
+    {
+      "FolderPath": "Rejected",
+      "KeyCodeString": "LeftArrow",
+      "PathRelative": true,
+      "UiSoundPath": "RejectSound.wav"
+    }
+  ],
+  "SkipSongKeyCodeString": "DownArrow",
+  "LaunchSongKeyCodeString": "UpArrow",
+  "HoldSongKeyCodeString": "Space"
 }

@@ -7,47 +7,56 @@ using SFB;
 using TagLib;
 using System;
 using System.Linq;
+using System.Text;
+using UnityEngine.Networking;
 
 public class SongSortInterface : MonoBehaviour
 {
 
+    #region Private Classes
+
+    private class FolderHotkeyMappingInternal
+    {
+
+        #region Public Fields
+
+        public string AbsoluteFolderPath = "";
+        public KeyCode KeyCodeEnum = KeyCode.Joystick8Button9;
+        public string UiSoundPath = "";
+        public AudioClip UiSoundClip = null; // RPB: has to be set by a monobehavior or something else capable of creating an AudioClip from a .wav file
+
+        #endregion
+
+        #region Public Constructors
+
+        public FolderHotkeyMappingInternal(FolderHotkeyMapping inputMapping, string sourceFolderPath)
+        {
+            if (inputMapping.PathRelative)
+            {
+                AbsoluteFolderPath = $"{sourceFolderPath}/{inputMapping.FolderPath}";
+            }
+            else
+            {
+                AbsoluteFolderPath = inputMapping.FolderPath;
+            }
+
+            KeyCodeEnum = (KeyCode)System.Enum.Parse(typeof(KeyCode), inputMapping.KeyCodeString);
+
+            UiSoundPath = Application.streamingAssetsPath + "/" + inputMapping.UiSoundPath;
+        }
+
+        #endregion
+
+    }
+
+    #endregion
+
     #region Private Fields
 
-    [SerializeField]
-    private AudioSource m_mainSound;
+    // RPB: Player Configurations
 
     [SerializeField]
-    private AudioSource m_approvalSound;
-
-    [SerializeField]
-    private AudioSource m_rejectionSound;
-
-    [SerializeField]
-    private AudioSource m_skipSound;
-
-    [SerializeField]
-    private Text m_nowPlayingText;
-
-    [SerializeField]
-    private Text m_statusText;
-
-    [SerializeField]
-    private Text m_progressText;
-
-    [SerializeField]
-    private Text m_statsText;
-
-    [SerializeField]
-    private RawImage m_albumArtDisplay;
-
-    [SerializeField]
-    private Texture m_defaultImage;
-
-    [SerializeField]
-    private Slider m_timeSlider;
-
-    [SerializeField]
-    private GameObject m_instructionsLayer;
+    private AudioSource m_mainSound = null;
 
     [SerializeField]
     private int m_partsToListenTo = 6;
@@ -55,22 +64,69 @@ public class SongSortInterface : MonoBehaviour
     [SerializeField]
     private float m_partPlaybackFadeTimeSeconds = 0.5f;
 
-    private string m_currentFilePath;
 
-    private string m_songFolderApprovedSongs;
-    private string m_songFolderRejectedSongs;
-    private string m_songFolderSourceSongs;
+    // RPB: UI
 
-    private string m_currentTitle;
-    private string m_currentArtist;
+    [SerializeField]
+    private AudioSource m_uiSound = null;
 
-    private bool m_isImporting = false;
-    private Queue<string> m_songFiles = new Queue<string>();
+    [SerializeField]
+    private Text m_nowPlayingText = null;
 
-    private SongPlayer m_songPlayer;
-    private AudioImporter m_importer;
+    [SerializeField]
+    private Text m_statusText = null;
 
+    [SerializeField]
+    private Text m_progressText = null;
+
+    [SerializeField]
+    private Text m_statsText = null;
+
+    [SerializeField]
+    private RawImage m_albumArtDisplay = null;
+
+    [SerializeField]
+    private Texture m_defaultImage = null;
+
+    [SerializeField]
+    private Slider m_timeSlider = null;
+
+    [SerializeField]
+    private GameObject m_instructionsLayer = null;
+
+    [SerializeField]
+    private GameObject m_statisticsLayer = null;
+
+    [SerializeField]
+    private AudioClip m_skipSongSound = null;
+
+    [SerializeField]
+    private AudioClip m_defaultUiSound = null;
+
+    // RPB: Components
+    private SongPlayer m_songPlayer = null;
+    private AudioImporter m_importer = null;
+    private ConfigurationReader m_configurationReader = null;
+
+    // RPB: Mappings
+    private List<FolderHotkeyMappingInternal> m_keyFolderMappings = new List<FolderHotkeyMappingInternal>();
+    private KeyCode m_skipSongKeyCode = KeyCode.DownArrow;
+    private KeyCode m_launchPlayerKeyCode = KeyCode.UpArrow;
+    private KeyCode m_holdSongKeycode = KeyCode.Space;
+
+    // RPB: Paths
+    private string m_songFolderSourceSongs = null;
+
+    // RPB: State info
+    private string m_currentFilePath = null;
+    private string m_currentTitle = null;
+    private string m_currentArtist = null;
     private bool m_fullPlayOn = false;
+    private bool m_isImporting = false;
+    private Queue<string> m_songFilesToProcess = new Queue<string>();
+
+    // RPB: Helpers
+    private StringBuilder m_stringBuilder = new StringBuilder();
 
     #endregion
 
@@ -78,20 +134,54 @@ public class SongSortInterface : MonoBehaviour
 
     private void Start()
     {
+        ReadConfiguration();
+        InitializeComponents();
+        InitializeNextSong();
+    }
+
+    private void InitializeComponents()
+    {
         m_songPlayer = gameObject.AddComponent<SongPlayer>();
-        m_songPlayer.InitializeSettings(m_mainSound, m_partsToListenTo, m_partPlaybackFadeTimeSeconds, m_timeSlider.value, m_timeSlider.maxValue);
+        m_songPlayer.InitializeSettings(m_mainSound, m_partsToListenTo, m_partPlaybackFadeTimeSeconds, m_timeSlider.value, m_timeSlider.maxValue, m_holdSongKeycode);
 
         m_importer = gameObject.AddComponent<NAudioImporter>();
 
-        m_statusText.text = "[ SYSTEM ] Press (F1) for controls";
+        m_timeSlider.onValueChanged.AddListener(delegate { TimeSliderChanged(); });
 
-        var configurationReader = gameObject.AddComponent<ConfigurationReader>();
-        var configuration = configurationReader.GetConfiguration();
+        m_uiSound.loop = false;
+
+        m_statusText.text = "[ SYSTEM ] Press (F1) for controls";
+    }
+
+    private void ReadConfiguration()
+    {
+        // TODO-RPB: Can this be broken up into more methods?
+        m_configurationReader = gameObject.AddComponent<ConfigurationReader>();
+        var configuration = m_configurationReader.GetConfiguration();
 
         if (configuration == null)
         {
             m_statusText.text = "[ ERROR ] Config file not found... falling back to default values";
+            Debug.LogWarning("No configuration file found (unusual), so falling back to default values");
             configuration = new SongSortConfiguration();
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.LaunchSongKeyCodeString))
+        {
+            m_launchPlayerKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.LaunchSongKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.LaunchSongKeyCodeString))
+        {
+            m_skipSongKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.SkipSongKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.LaunchSongKeyCodeString))
+        {
+            m_holdSongKeycode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.HoldSongKeyCodeString);
         }
 
         if (configuration.SkipBrowserDialogOnOpen)
@@ -101,29 +191,36 @@ public class SongSortInterface : MonoBehaviour
         else
         {
             var paths = StandaloneFileBrowser.OpenFolderPanel("Select Source Folder", "", false);
+
+            if (paths == null || paths.Length == 0)
+            {
+                Application.Quit();
+            }
+
             m_songFolderSourceSongs = paths[0];
         }
 
-        if (configuration.OverrideAcceptDirectory)
+        if (configuration.FolderHotkeyMapping == null || configuration.FolderHotkeyMapping.Length == 0)
         {
-            m_songFolderApprovedSongs = configuration.OverrideAcceptDirectoryPath;
-        }
-        else
-        {
-            m_songFolderApprovedSongs = $"{m_songFolderSourceSongs}\\Approved";
+            Debug.LogWarning("FolderHotkeyMapping not found! Falling back to defaults...");
+
+            var approveMapping = new FolderHotkeyMapping("Approved", true, "RightArrow", "ApproveSound.wav");
+            var rejectMapping = new FolderHotkeyMapping("Rejected", true, "LeftArrow", "ApproveSound.wav");
+            configuration.FolderHotkeyMapping = new FolderHotkeyMapping[] { approveMapping, rejectMapping };
         }
 
-        if (configuration.OverrideRejectDirectory)
+        // TODO-RPB: This needs to be error checked like crazy! I can imagine this being fragile
+        for (int i = 0; i < configuration.FolderHotkeyMapping.Length; i++)
         {
-            m_songFolderRejectedSongs = configuration.OverrideRejectDirectoryPath;
-        }
-        else
-        {
-            m_songFolderRejectedSongs = $"{m_songFolderSourceSongs}\\Rejected";
+            m_keyFolderMappings.Add(new FolderHotkeyMappingInternal(configuration.FolderHotkeyMapping[i], m_songFolderSourceSongs));
         }
 
-        Directory.CreateDirectory(m_songFolderApprovedSongs);
-        Directory.CreateDirectory(m_songFolderRejectedSongs);
+        for (int i = 0; i < m_keyFolderMappings.Count; i++)
+        {
+            Directory.CreateDirectory(m_keyFolderMappings[i].AbsoluteFolderPath);
+
+            StartCoroutine(SetAudioClip(m_keyFolderMappings[i]));
+        }
 
         var allFiles = Directory.GetFiles(m_songFolderSourceSongs);
 
@@ -133,22 +230,15 @@ public class SongSortInterface : MonoBehaviour
             allFiles = allFiles.OrderBy(x => rnd.Next()).ToArray();
         }
 
-        m_songFiles = new Queue<string>();
+        m_songFilesToProcess = new Queue<string>();
 
         for (int i = 0; i < allFiles.Length; i++)
         {
             if (Path.GetExtension(allFiles[i]) == ".mp3")
             {
-                m_songFiles.Enqueue(allFiles[i]);
+                m_songFilesToProcess.Enqueue(allFiles[i]);
             }
         }
-
-        m_approvalSound.loop = false;
-        m_rejectionSound.loop = false;
-
-        m_timeSlider.onValueChanged.AddListener(delegate { TimeSliderChanged(); });
-
-        InitializeNextSong();
     }
 
     private void TimeSliderChanged()
@@ -159,24 +249,22 @@ public class SongSortInterface : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.UpArrow))
+        for (int i = 0; i < m_keyFolderMappings.Count; i++)
+        {
+            if (Input.GetKeyDown(m_keyFolderMappings[i].KeyCodeEnum))
+            {
+                MoveCurrentSong(m_keyFolderMappings[i]);
+            }
+        }
+
+        if (Input.GetKeyDown(m_launchPlayerKeyCode))
         {
             PlayFullSong();
         }
 
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (Input.GetKeyDown(m_skipSongKeyCode))
         {
             HoldSong();
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            RejectSong();
-        }
-
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            ApproveSong();
         }
 
         if (Input.GetKeyDown(KeyCode.Escape))
@@ -189,7 +277,7 @@ public class SongSortInterface : MonoBehaviour
             m_fullPlayOn = !m_fullPlayOn;
             m_songPlayer.FullPlayOn = m_fullPlayOn;
 
-            if(m_fullPlayOn)
+            if (m_fullPlayOn)
             {
                 m_statusText.text = "[ SYSTEM ] Playback mode: Full!";
             }
@@ -201,41 +289,83 @@ public class SongSortInterface : MonoBehaviour
 
         m_instructionsLayer.SetActive(Input.GetKey(KeyCode.F1));
 
+        if (Input.GetKeyDown(KeyCode.F3))
+        {
+            UpdateStatsText();
+        }
+
+        m_statisticsLayer.SetActive(Input.GetKey(KeyCode.F3));
+
         if (m_songPlayer.IsHolding)
         {
             m_statusText.text = "[ SYSTEM ] Holding current playback section!";
         }
     }
 
-    private void UpdateStats()
+    private void UpdateProgressText()
     {
         DirectoryInfo sourceInfo = new DirectoryInfo(m_songFolderSourceSongs);
-        DirectoryInfo approveInfo = new DirectoryInfo(m_songFolderApprovedSongs);
-        DirectoryInfo rejectInfo = new DirectoryInfo(m_songFolderRejectedSongs);
+        var totalSongsInSource = sourceInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
 
-        var sourceFileCount = sourceInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
-        var approveFileCount = approveInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
-        var rejectInfoFileCount = rejectInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+        int totalSongsInMappedDirectories = 0;
 
-        var fractionComplete = (float)(approveFileCount + rejectInfoFileCount) / (float)(sourceFileCount + approveFileCount + rejectInfoFileCount);
+        for (int i = 0; i < m_keyFolderMappings.Count; i++)
+        {
+            DirectoryInfo folderInfo = new DirectoryInfo(m_keyFolderMappings[i].AbsoluteFolderPath);
+            int filesInFolder = folderInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+            totalSongsInMappedDirectories += filesInFolder;
+        }
 
-        m_progressText.text = $"[ {approveFileCount + rejectInfoFileCount}/{sourceFileCount + approveFileCount + rejectInfoFileCount} {fractionComplete:0.00%} ]";
-        m_statsText.text = $"Stats:\n - Approved: {approveFileCount}\n - Rejected: {rejectInfoFileCount}\n - Remain: {sourceFileCount}\n - Total:{sourceFileCount + approveFileCount + rejectInfoFileCount}\n - Progress: {fractionComplete:0.00%}\n - Approval Ratio: {(float)approveFileCount/(float)(approveFileCount + rejectInfoFileCount):0.00%}";
+        var fractionComplete = (float)totalSongsInMappedDirectories / ((float)totalSongsInSource + totalSongsInMappedDirectories);
+        m_progressText.text = $"[ {totalSongsInMappedDirectories}/{totalSongsInSource + totalSongsInMappedDirectories} {fractionComplete:0.00%} ]";
+    }
+
+    private void UpdateStatsText()
+    {
+        m_stringBuilder.Clear();
+        m_stringBuilder.AppendLine("Statistics:");
+
+        DirectoryInfo sourceInfo = new DirectoryInfo(m_songFolderSourceSongs);
+        var totalSongsInSource = sourceInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+
+        int totalSongsInMappedDirectories = 0;
+
+        for (int i = 0; i < m_keyFolderMappings.Count; i++)
+        {
+            DirectoryInfo folderInfo = new DirectoryInfo(m_keyFolderMappings[i].AbsoluteFolderPath);
+            int filesInFolder = folderInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+            totalSongsInMappedDirectories += filesInFolder;
+        }
+
+        for (int i = 0; i < m_keyFolderMappings.Count; i++)
+        {
+            DirectoryInfo folderInfo = new DirectoryInfo(m_keyFolderMappings[i].AbsoluteFolderPath);
+            int filesInFolder = folderInfo.GetFiles("*.mp3", SearchOption.TopDirectoryOnly).Length;
+            m_stringBuilder.AppendLine($" - {folderInfo.Name}: {filesInFolder} ({(float)filesInFolder / (float)totalSongsInMappedDirectories:0.00%})");
+        }
+
+        var fractionComplete = (float)totalSongsInMappedDirectories / ((float)totalSongsInSource + totalSongsInMappedDirectories);
+        m_progressText.text = $"[ {totalSongsInMappedDirectories}/{totalSongsInSource + totalSongsInMappedDirectories} {fractionComplete:0.00%} ]";
+
+        m_stringBuilder.AppendLine($" - Remain: {totalSongsInSource}");
+        m_stringBuilder.AppendLine($" - Total: {totalSongsInSource + totalSongsInMappedDirectories}");
+
+        m_statsText.text = m_stringBuilder.ToString();
     }
 
     private void InitializeNextSong()
     {
         // RPB: Get the next song in list path, but check it still exists.
         // RPB: Also make sure to take care of the case where a song doesn't 
-        if (m_songFiles.Count == 0)
+        if (m_songFilesToProcess.Count == 0)
         {
             m_statusText.text = "[ SYSTEM ] Finished!";
             return;
         }
 
-        m_currentFilePath = m_songFiles.Dequeue();
+        m_currentFilePath = m_songFilesToProcess.Dequeue();
 
-        UpdateStats();
+        UpdateProgressText();
 
         InitializeSongFromPath(m_currentFilePath);
     }
@@ -249,7 +379,7 @@ public class SongSortInterface : MonoBehaviour
     {
         m_isImporting = true;
 
-        while (m_approvalSound.isPlaying || m_rejectionSound.isPlaying || m_skipSound.isPlaying)
+        while (m_uiSound.isPlaying)
         {
             yield return null;
         }
@@ -305,33 +435,29 @@ public class SongSortInterface : MonoBehaviour
         m_songPlayer.PlaySong(m_importer.audioClip);
     }
 
-    private void ApproveSong()
+    private void MoveCurrentSong(FolderHotkeyMappingInternal folderMapping)
     {
         if (m_isImporting || !m_songPlayer.IsPlaying)
         {
-            m_statusText.text = "[ SYSTEM ] Cannot approve song while it is still loading!";
+            m_statusText.text = "[ SYSTEM ] Cannot move song while it is still loading!";
+            return;
         }
 
         m_songPlayer.StopPlayback();
-        StartCoroutine(TryMoveFile(m_currentFilePath, m_songFolderApprovedSongs + "\\" + Path.GetFileName(m_currentFilePath)));
-        m_statusText.text = $"[ SYSTEM ] Accepted {Path.GetFileNameWithoutExtension(m_currentFilePath)}";
+        StartCoroutine(TryMoveFile(m_currentFilePath, folderMapping.AbsoluteFolderPath + "\\" + Path.GetFileName(m_currentFilePath)));
+        m_statusText.text = $"[ SYSTEM ] Moved {Path.GetFileName(m_currentFilePath)} to {new DirectoryInfo(folderMapping.AbsoluteFolderPath).Name}";
+        Debug.Log($"Moved {Path.GetFileName(m_currentFilePath)} to {new DirectoryInfo(folderMapping.AbsoluteFolderPath).Name}");
 
-        m_approvalSound.Play();
-        InitializeNextSong();
-    }
-
-    private void RejectSong()
-    {
-        if (m_isImporting || !m_songPlayer.IsPlaying)
+        if (folderMapping.UiSoundClip)
         {
-            m_statusText.text = "[ SYSTEM ] Cannot reject song while it is still loading!";
+            m_uiSound.clip = folderMapping.UiSoundClip;
+        }
+        else
+        {
+            m_uiSound.clip = m_defaultUiSound;
         }
 
-        m_songPlayer.StopPlayback();
-        m_statusText.text = $"[ SYSTEM ] Rejected {Path.GetFileNameWithoutExtension(m_currentFilePath)}";
-        StartCoroutine(TryMoveFile(m_currentFilePath, m_songFolderRejectedSongs + "\\" + Path.GetFileName(m_currentFilePath)));
-
-        m_rejectionSound.Play();
+        m_uiSound.Play();
         InitializeNextSong();
     }
 
@@ -344,7 +470,9 @@ public class SongSortInterface : MonoBehaviour
 
         m_songPlayer.StopPlayback();
         m_statusText.text = $"[ SYSTEM ] Skipped {Path.GetFileNameWithoutExtension(m_currentFilePath)}";
-        m_skipSound.Play();
+
+        m_uiSound.clip = m_skipSongSound;
+        m_uiSound.Play();
         InitializeNextSong();
     }
 
@@ -390,6 +518,33 @@ public class SongSortInterface : MonoBehaviour
         {
             Debug.LogError($"Failed to move {oldPath}");
             m_statusText.text = $"Failed to move {oldPath}";
+        }
+    }
+
+    private IEnumerator SetAudioClip(FolderHotkeyMappingInternal mapping)
+    {
+        mapping.UiSoundClip = m_defaultUiSound;
+
+        if (!System.IO.File.Exists(mapping.UiSoundPath))
+        {
+            Debug.LogError($"Attempted to load nonexistent sound file: {mapping.UiSoundPath}");
+            yield break;
+        }
+
+        using (UnityWebRequest www = UnityWebRequestMultimedia.GetAudioClip(mapping.UiSoundPath, AudioType.WAV))
+        {
+
+            yield return www.Send();
+
+            if (www.isNetworkError)
+            {
+                Debug.LogError(www.error);
+                Debug.LogError($"Attempted to load invalid/corrupt sound file: {mapping.UiSoundPath}");
+            }
+            else
+            {
+                mapping.UiSoundClip = DownloadHandlerAudioClip.GetContent(www);
+            }
         }
     }
 

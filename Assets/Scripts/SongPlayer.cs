@@ -14,6 +14,7 @@ public class SongPlayer : MonoBehaviour
     private AudioSource m_audioSource;
     public bool m_isHolding = false;
     private bool m_fullPlayOn = false;
+    private KeyCode m_holdSongKeycode = KeyCode.Space;
 
     private Coroutine m_songPlayCoroutine;
 
@@ -45,7 +46,7 @@ public class SongPlayer : MonoBehaviour
 
     #region Public Methods
 
-    public void InitializeSettings(AudioSource audioSource, int parts, float fadeTimeSeconds, float sectionPlayTimeSeconds, float maxSectionPlaybackTime)
+    public void InitializeSettings(AudioSource audioSource, int parts, float fadeTimeSeconds, float sectionPlayTimeSeconds, float maxSectionPlaybackTime, KeyCode holdSongKeycode)
     {
         if(audioSource == null)
         {
@@ -57,6 +58,7 @@ public class SongPlayer : MonoBehaviour
         m_partPlaybackTimeSeconds = sectionPlayTimeSeconds;
         m_partPlaybackFadeTimeSeconds = fadeTimeSeconds;
         m_audioSource = audioSource;
+        m_holdSongKeycode = holdSongKeycode;
 }
 
     public void PlaySong(AudioClip songClip)
@@ -155,7 +157,7 @@ public class SongPlayer : MonoBehaviour
 
                     m_isHolding = false;
 
-                    while (Input.GetKey(KeyCode.Space))
+                    while (Input.GetKey(m_holdSongKeycode))
                     {
                         m_isHolding = true;
                         yield return null; // RPB: this lets us delay the fade
