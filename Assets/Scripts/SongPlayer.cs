@@ -12,6 +12,8 @@ public class SongPlayer : MonoBehaviour
     private float m_partPlaybackTimeSeconds = 5f;
     private float m_partPlaybackFadeTimeSeconds = 0.5f; // RPB: Must be less than half of playbacktime
     private AudioSource m_audioSource;
+    public bool m_isHolding = false;
+    private bool m_fullPlayOn = false;
 
     private Coroutine m_songPlayCoroutine;
 
@@ -24,9 +26,19 @@ public class SongPlayer : MonoBehaviour
         get { return m_audioSource.isPlaying; }
     }
 
+    public bool IsHolding
+    {
+        get { return m_isHolding; }
+    }
+
     public float PartPlaybackTimeSeconds
     {
         set { m_partPlaybackTimeSeconds = value; }
+    }
+
+    public bool FullPlayOn
+    {
+        set { m_fullPlayOn = value; }
     }
 
     #endregion
@@ -47,7 +59,7 @@ public class SongPlayer : MonoBehaviour
         m_audioSource = audioSource;
 }
 
-    public void PlaySongParts(AudioClip songClip)
+    public void PlaySong(AudioClip songClip)
     {
         if (m_audioSource == null)
         {
@@ -60,7 +72,7 @@ public class SongPlayer : MonoBehaviour
             StopPlayback();
         }
 
-        m_songPlayCoroutine = StartCoroutine(PlaySongPartsCoroutine(songClip));
+        m_songPlayCoroutine = StartCoroutine(PlaySongCoroutine(songClip));
     }
 
     public void StopPlayback()
@@ -74,7 +86,7 @@ public class SongPlayer : MonoBehaviour
 
     #region Private Methods
 
-    private IEnumerator PlaySongPartsCoroutine(AudioClip songClip)
+    private IEnumerator PlaySongCoroutine(AudioClip songClip)
     {
         if (m_audioSource == null)
         {
@@ -97,35 +109,70 @@ public class SongPlayer : MonoBehaviour
 
         while (true)
         {
-            for (int i = 0; i < m_partsToListenTo; i++)
+            if (m_fullPlayOn)
             {
-                m_audioSource.volume = 0f;
-                var playheadTime = i * lengthPerPart;
-                m_audioSource.time = playheadTime;
-                m_audioSource.Play();
-
-                var crossfadeStartTime = Time.time;
-
-                while (Time.time < crossfadeStartTime + m_partPlaybackFadeTimeSeconds)
+                if (m_audioSource.volume != 0f)
                 {
-                    var progressTime = (Time.time - crossfadeStartTime) / m_partPlaybackFadeTimeSeconds;
-                    m_audioSource.volume = Mathf.Lerp(0f, 1f, progressTime);
-                    yield return null;
+                    m_audioSource.volume += (Time.deltaTime) / m_partPlaybackFadeTimeSeconds;
                 }
 
-                yield return new WaitForSeconds(m_partPlaybackTimeSeconds - 2 * m_partPlaybackFadeTimeSeconds);
-
-                crossfadeStartTime = Time.time;
-
-                while (Time.time < crossfadeStartTime + m_partPlaybackFadeTimeSeconds)
+                if (!m_audioSource.isPlaying)
                 {
-                    var progressTime = (Time.time - crossfadeStartTime) / m_partPlaybackFadeTimeSeconds;
-                    m_audioSource.volume = Mathf.Lerp(1f, 0f, progressTime);
-                    yield return null;
+                    m_audioSource.Play();
                 }
+                m_audioSource.loop = true;
 
                 yield return null;
             }
+            else
+            {
+                for (int i = 0; i < m_partsToListenTo; i++)
+                {
+                    m_audioSource.loop = false;
+
+                    if (m_fullPlayOn)
+                    {
+                        break;
+                    }
+
+                    m_audioSource.volume = 0f;
+                    var playheadTime = i * lengthPerPart;
+                    m_audioSource.time = playheadTime;
+                    m_audioSource.Play();
+
+                    var crossfadeStartTime = Time.time;
+
+                    while (Time.time < crossfadeStartTime + m_partPlaybackFadeTimeSeconds)
+                    {
+                        var progressTime = (Time.time - crossfadeStartTime) / m_partPlaybackFadeTimeSeconds;
+                        m_audioSource.volume = Mathf.Lerp(0f, 1f, progressTime);
+                        yield return null;
+                    }
+
+                    yield return new WaitForSeconds(m_partPlaybackTimeSeconds - 2 * m_partPlaybackFadeTimeSeconds);
+
+                    m_isHolding = false;
+
+                    while (Input.GetKey(KeyCode.Space))
+                    {
+                        m_isHolding = true;
+                        yield return null; // RPB: this lets us delay the fade
+                    }
+
+                    m_isHolding = false;
+
+                    crossfadeStartTime = Time.time;
+
+                    while (Time.time < crossfadeStartTime + m_partPlaybackFadeTimeSeconds)
+                    {
+                        var progressTime = (Time.time - crossfadeStartTime) / m_partPlaybackFadeTimeSeconds;
+                        m_audioSource.volume = Mathf.Lerp(1f, 0f, progressTime);
+                        yield return null;
+                    }
+
+                    yield return null;
+                }
+            }           
         }
     }
 

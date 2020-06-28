@@ -70,6 +70,8 @@ public class SongSortInterface : MonoBehaviour
     private SongPlayer m_songPlayer;
     private AudioImporter m_importer;
 
+    private bool m_fullPlayOn = false;
+
     #endregion
 
     #region Private Methods
@@ -182,7 +184,27 @@ public class SongSortInterface : MonoBehaviour
             Application.Quit();
         }
 
+        if (Input.GetKeyDown(KeyCode.F2))
+        {
+            m_fullPlayOn = !m_fullPlayOn;
+            m_songPlayer.FullPlayOn = m_fullPlayOn;
+
+            if(m_fullPlayOn)
+            {
+                m_statusText.text = "[ SYSTEM ] Playback mode: Full!";
+            }
+            else
+            {
+                m_statusText.text = "[ SYSTEM ] Playback mode: Preview!";
+            }
+        }
+
         m_instructionsLayer.SetActive(Input.GetKey(KeyCode.F1));
+
+        if (m_songPlayer.IsHolding)
+        {
+            m_statusText.text = "[ SYSTEM ] Holding current playback section!";
+        }
     }
 
     private void UpdateStats()
@@ -280,7 +302,7 @@ public class SongSortInterface : MonoBehaviour
             yield return null;
 
         m_isImporting = false;
-        m_songPlayer.PlaySongParts(m_importer.audioClip);
+        m_songPlayer.PlaySong(m_importer.audioClip);
     }
 
     private void ApproveSong()

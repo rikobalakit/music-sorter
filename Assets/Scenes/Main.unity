@@ -1999,7 +1999,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1792645782
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2127,9 +2127,10 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: "This tool helps you sort songs into Approval and Rejection folders quickly.\n\nControls:\n\nUp
     Arrow: \t\tLaunch Player\nDown Arrow: \tSkip Song\nLeft Arrow: \tReject song\nRight
-    Arrow: \tAccept Song\nF1:\t\t\t\tShow Controls\nEscape:\t\t\tExit\n\nAdditional
-    configuration options\nare available under\n%AppRoot%/MusicSorter_Data/StreamingAssets\n\nFollow
-    @DropTeamEpic, @KillScreenDJ, & @PearlGreyMusic"
+    Arrow: \tAccept Song\nF1:\t\t\t\tShow Controls\nF2:\t\t\t\tToggle Play Mode\nEscape:\t\t\tExit\nSpace:
+    \t\t\tHold Song Section\n\nAdditional configuration options\nare available under\n%AppRoot%/MusicSorter_Data/StreamingAssets\n\nFollow
+    @DropTeamEpic, @KillScreenDJ, & @PearlGreyMusic on Twitter, Facebook, SoundCloud,
+    and Instagram"
 --- !u!222 &1794468877
 CanvasRenderer:
   m_ObjectHideFlags: 0
