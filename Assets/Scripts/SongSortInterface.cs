@@ -124,6 +124,8 @@ public class SongSortInterface : MonoBehaviour
     private bool m_fullPlayOn = false;
     private bool m_isImporting = false;
     private Queue<string> m_songFilesToProcess = new Queue<string>();
+    private string m_lastMoveOriginalPath = null;
+    private string m_lastMoveNewPath = null;
 
     // RPB: Helpers
     private StringBuilder m_stringBuilder = new StringBuilder();
@@ -285,6 +287,12 @@ public class SongSortInterface : MonoBehaviour
             {
                 m_statusText.text = "[ SYSTEM ] Playback mode: Preview!";
             }
+        }
+
+        if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Z))
+        {
+            m_statusText.text = $"[ SYSTEM ] UNDO!!!";
+            StartCoroutine(TryMoveFile(m_lastMoveNewPath, m_lastMoveOriginalPath));
         }
 
         m_instructionsLayer.SetActive(Input.GetKey(KeyCode.F1));
@@ -490,6 +498,9 @@ public class SongSortInterface : MonoBehaviour
 
     private IEnumerator TryMoveFile(string oldPath, string newPath)
     {
+        m_lastMoveOriginalPath = oldPath;
+        m_lastMoveNewPath = newPath;
+        Debug.Log($"trying to move file {oldPath} to {newPath}");
         bool wasSuccessful = false;
 
         for (int i = 0; i < 5; i++)
@@ -510,6 +521,7 @@ public class SongSortInterface : MonoBehaviour
             if (successUnlessError)
             {
                 wasSuccessful = true;
+
                 break;
             }
         }
