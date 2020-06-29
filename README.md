@@ -9,7 +9,34 @@ The app will then preview tracks, one at a time, for you, by playing back short 
 You can press the "Left" arrow key to reject the song (moving it into a folder of rejected tracks)
 You can press the "Right" arrow key to accept a song (moving it into a folder of accepted tracks)
 
-There is a configuration file that will continue to expand with more options. Current options include setting an override directory for the accepted tracks, randomizing track playback order, and more.
+There is a configuration file that has several options, and more are planned. You can change keybindings (reference the Unity Keycodes to figure out what to change the KeyCodeString to https://docs.unity3d.com/ScriptReference/KeyCode.html ) and define new folders to sort songs into. You can also add/change the UI sound for your folders!
+
+```
+{
+  "DefaultSourceDirectory": "testDir",
+  "SkipBrowserDialogOnOpen": false,
+  "RandomizeOrder": false,
+  "FolderHotkeyMapping": [
+    {
+      "FolderPath": "Approved",
+      "KeyCodeString": "RightArrow",
+      "PathRelative": true,
+      "UiSoundPath": "ApproveSound.wav"
+    },
+    {
+      "FolderPath": "Rejected",
+      "KeyCodeString": "LeftArrow",
+      "PathRelative": true,
+      "UiSoundPath": "RejectSound.wav"
+    }
+  ],
+  "SkipSongKeyCodeString": "DownArrow",
+  "LaunchSongKeyCodeString": "UpArrow",
+  "HoldSongKeyCodeString": "Space"
+}
+```
+
+
 
 ![alt text](https://github.com/ricobalakit/music-sorter/blob/master/graphic1.png?raw=true)
 
