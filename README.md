@@ -36,6 +36,7 @@ There is a configuration file that has several options, and more are planned. Yo
 }
 ```
 
+If you want to contribute, use Unity 2019.3.0b11
 
 
 ![alt text](https://github.com/ricobalakit/music-sorter/blob/master/graphic1.png?raw=true)
