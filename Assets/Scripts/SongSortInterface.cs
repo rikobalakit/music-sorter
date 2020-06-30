@@ -332,7 +332,7 @@ public class SongSortInterface : MonoBehaviour
 
         m_instructionsLayer.SetActive(Input.GetKey(m_showControlsKeyCode));
 
-        if (Input.GetKeyDown(KeyCode.F3))
+        if (Input.GetKeyDown(m_showStatisticsKeyCode))
         {
             UpdateStatsText();
         }
