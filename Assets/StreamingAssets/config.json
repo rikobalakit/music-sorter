@@ -19,5 +19,9 @@
   "SkipSongKeyCodeString": "DownArrow",
   "LaunchSongKeyCodeString": "UpArrow",
   "HoldSongKeyCodeString": "Space",
-  "UndoKeyCodeString": "Backspace"
+  "UndoKeyCodeString": "Backspace",
+  "TogglePlaybackModeKeyCodeString": "F2",
+  "ShowStatisticsKeyCodeString": "F3",
+  "ShowControlsKeyCodeString": "F1",
+  "ExitKeyCodeString": "Escape"
 }

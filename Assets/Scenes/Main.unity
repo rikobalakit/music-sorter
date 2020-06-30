@@ -954,6 +954,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_mainSound: {fileID: 1061301080}
+  m_partsToListenTo: 6
+  m_partPlaybackFadeTimeSeconds: 0.5
   m_uiSound: {fileID: 355637413}
   m_nowPlayingText: {fileID: 132025918}
   m_statusText: {fileID: 1525322260}
@@ -964,8 +966,6 @@ MonoBehaviour:
   m_timeSlider: {fileID: 308682007}
   m_instructionsLayer: {fileID: 1792645781}
   m_statisticsLayer: {fileID: 426406635}
-  m_partsToListenTo: 6
-  m_partPlaybackFadeTimeSeconds: 0.5
   m_skipSongSound: {fileID: 8300000, guid: 2f7ef468c7fde6e48acf1d8d25e457ec, type: 3}
   m_defaultUiSound: {fileID: 8300000, guid: 9d9c2c08063bd064b8e016586549e8e6, type: 3}
 --- !u!1 &927982474
@@ -1788,7 +1788,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1792645782
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1915,9 +1915,9 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: "This tool helps you sort songs into Approval and Rejection folders quickly.\n\nDefault
     Controls:\n\nUp Arrow: \t\tLaunch Player\nDown Arrow: \tSkip Song\nLeft Arrow:
-    \tReject song\nRight Arrow: \tAccept Song\nF1:\t\t\t\tShow Controls\nF2:\t\t\t\tToggle
-    Play Mode\nEscape:\t\t\tExit\nSpace: \t\t\tHold Song Section\n\nAdditional configuration
-    options\nare available under\n%AppRoot%/MusicSorter_Data/StreamingAssets\n\nFollow
+    \tReject song\nRight Arrow: \tAccept Song\nUndo: \t\t\tBackspace\nF1:\t\t\t\tShow
+    Controls\nF2:\t\t\t\tToggle Play Mode\nEscape:\t\t\tExit\nSpace: \t\t\tHold Song
+    Section\n\nAdditional configuration options\nare available under\n%AppRoot%/MusicSorter_Data/StreamingAssets\n\nFollow
     @DropTeamEpic, @KillScreenDJ, & @PearlGreyMusic on Twitter, Facebook, SoundCloud,
     and Instagram"
 --- !u!222 &1794468877

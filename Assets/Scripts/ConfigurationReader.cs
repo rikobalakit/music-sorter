@@ -43,6 +43,10 @@ public class SongSortConfiguration
     public string LaunchSongKeyCodeString = "UpArrow";
     public string HoldSongKeyCodeString = "Space";
     public string UndoKeyCodeString = "Backspace";
+    public string TogglePlaybackModeKeyCodeString = "F2";
+    public string ShowStatisticsKeyCodeString = "F3";
+    public string ShowControlsKeyCodeString = "F1";
+    public string ExitKeyCodeString = "Escape";
 
     #endregion
 

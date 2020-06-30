@@ -112,8 +112,12 @@ public class SongSortInterface : MonoBehaviour
     private List<FolderHotkeyMappingInternal> m_keyFolderMappings = new List<FolderHotkeyMappingInternal>();
     private KeyCode m_skipSongKeyCode = KeyCode.DownArrow;
     private KeyCode m_launchPlayerKeyCode = KeyCode.UpArrow;
-    private KeyCode m_holdSongKeycode = KeyCode.Space;
-    private KeyCode m_undoKeycode = KeyCode.Backspace;
+    private KeyCode m_holdSongKeyCode = KeyCode.Space;
+    private KeyCode m_undoKeyCode = KeyCode.Backspace;
+    private KeyCode m_togglePlaybackModeKeyCode = KeyCode.F2;
+    private KeyCode m_showStatisticsKeyCode = KeyCode.F3;
+    private KeyCode m_showControlsKeyCode = KeyCode.F1;
+    private KeyCode m_exitKeyCode = KeyCode.Escape;
 
     // RPB: Paths
     private string m_songFolderSourceSongs = null;
@@ -145,7 +149,7 @@ public class SongSortInterface : MonoBehaviour
     private void InitializeComponents()
     {
         m_songPlayer = gameObject.AddComponent<SongPlayer>();
-        m_songPlayer.InitializeSettings(m_mainSound, m_partsToListenTo, m_partPlaybackFadeTimeSeconds, m_timeSlider.value, m_timeSlider.maxValue, m_holdSongKeycode);
+        m_songPlayer.InitializeSettings(m_mainSound, m_partsToListenTo, m_partPlaybackFadeTimeSeconds, m_timeSlider.value, m_timeSlider.maxValue, m_holdSongKeyCode);
 
         m_importer = gameObject.AddComponent<NAudioImporter>();
 
@@ -184,13 +188,37 @@ public class SongSortInterface : MonoBehaviour
         // RPB: This is optional. If empty, will fall back to the default.
         if (!string.IsNullOrEmpty(configuration.LaunchSongKeyCodeString))
         {
-            m_holdSongKeycode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.HoldSongKeyCodeString);
+            m_holdSongKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.HoldSongKeyCodeString);
         }
 
         // RPB: This is optional. If empty, will fall back to the default.
         if (!string.IsNullOrEmpty(configuration.UndoKeyCodeString))
         {
-            m_undoKeycode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.UndoKeyCodeString);
+            m_undoKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.UndoKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.TogglePlaybackModeKeyCodeString))
+        {
+            m_togglePlaybackModeKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.TogglePlaybackModeKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.ShowStatisticsKeyCodeString))
+        {
+            m_showStatisticsKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.ShowStatisticsKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.ShowControlsKeyCodeString))
+        {
+            m_showControlsKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.ShowControlsKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.ExitKeyCodeString))
+        {
+            m_exitKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.ExitKeyCodeString);
         }
 
         if (configuration.SkipBrowserDialogOnOpen)
@@ -276,12 +304,12 @@ public class SongSortInterface : MonoBehaviour
             HoldSong();
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(m_exitKeyCode))
         {
             Application.Quit();
         }
 
-        if (Input.GetKeyDown(KeyCode.F2))
+        if (Input.GetKeyDown(m_togglePlaybackModeKeyCode))
         {
             m_fullPlayOn = !m_fullPlayOn;
             m_songPlayer.FullPlayOn = m_fullPlayOn;
@@ -296,20 +324,20 @@ public class SongSortInterface : MonoBehaviour
             }
         }
 
-        if(Input.GetKeyDown(m_undoKeycode)) // TODO-RPB: Make this settable
+        if(Input.GetKeyDown(m_undoKeyCode)) // TODO-RPB: Make this settable
         {
             m_statusText.text = $"[ SYSTEM ] UNDO!!!";
             StartCoroutine(TryMoveFile(m_lastMoveNewPath, m_lastMoveOriginalPath));
         }
 
-        m_instructionsLayer.SetActive(Input.GetKey(KeyCode.F1));
+        m_instructionsLayer.SetActive(Input.GetKey(m_showControlsKeyCode));
 
         if (Input.GetKeyDown(KeyCode.F3))
         {
             UpdateStatsText();
         }
 
-        m_statisticsLayer.SetActive(Input.GetKey(KeyCode.F3));
+        m_statisticsLayer.SetActive(Input.GetKey(m_showStatisticsKeyCode));
 
         if (m_songPlayer.IsHolding)
         {
