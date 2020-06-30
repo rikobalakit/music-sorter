@@ -113,6 +113,7 @@ public class SongSortInterface : MonoBehaviour
     private KeyCode m_skipSongKeyCode = KeyCode.DownArrow;
     private KeyCode m_launchPlayerKeyCode = KeyCode.UpArrow;
     private KeyCode m_holdSongKeycode = KeyCode.Space;
+    private KeyCode m_undoKeycode = KeyCode.Backspace;
 
     // RPB: Paths
     private string m_songFolderSourceSongs = null;
@@ -184,6 +185,12 @@ public class SongSortInterface : MonoBehaviour
         if (!string.IsNullOrEmpty(configuration.LaunchSongKeyCodeString))
         {
             m_holdSongKeycode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.HoldSongKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.UndoKeyCodeString))
+        {
+            m_undoKeycode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.UndoKeyCodeString);
         }
 
         if (configuration.SkipBrowserDialogOnOpen)
@@ -289,7 +296,7 @@ public class SongSortInterface : MonoBehaviour
             }
         }
 
-        if(Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Z))
+        if(Input.GetKeyDown(m_undoKeycode)) // TODO-RPB: Make this settable
         {
             m_statusText.text = $"[ SYSTEM ] UNDO!!!";
             StartCoroutine(TryMoveFile(m_lastMoveNewPath, m_lastMoveOriginalPath));

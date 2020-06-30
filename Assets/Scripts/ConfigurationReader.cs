@@ -42,6 +42,7 @@ public class SongSortConfiguration
     public string SkipSongKeyCodeString = "DownArrow";
     public string LaunchSongKeyCodeString = "UpArrow";
     public string HoldSongKeyCodeString = "Space";
+    public string UndoKeyCodeString = "Backspace";
 
     #endregion
 

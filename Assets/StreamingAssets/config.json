@@ -18,5 +18,6 @@
   ],
   "SkipSongKeyCodeString": "DownArrow",
   "LaunchSongKeyCodeString": "UpArrow",
-  "HoldSongKeyCodeString": "Space"
+  "HoldSongKeyCodeString": "Space",
+  "UndoKeyCodeString": "Backspace"
 }
