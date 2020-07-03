@@ -73,6 +73,9 @@ public class SongSortInterface : MonoBehaviour
     private AudioSource m_uiSound = null;
 
     [SerializeField]
+    private Text m_nowPlayingTitleText = null;
+
+    [SerializeField]
     private Text m_nowPlayingText = null;
 
     [SerializeField]
@@ -104,6 +107,9 @@ public class SongSortInterface : MonoBehaviour
 
     [SerializeField]
     private AudioClip m_defaultUiSound = null;
+
+    [SerializeField]
+    private Slider m_scrubbar = null;
 
     // RPB: Components
     private SongPlayer m_songPlayer = null;
@@ -368,6 +374,14 @@ public class SongSortInterface : MonoBehaviour
         if (m_songPlayer.IsHolding)
         {
             m_statusText.text = "[ SYSTEM ] Holding current playback section!";
+        }
+
+        if (m_scrubbar != null && m_mainSound != null && m_mainSound.isPlaying && m_mainSound.clip != null)
+        {
+            TimeSpan progress = new TimeSpan((long)m_mainSound.time * 10000000);
+            TimeSpan total = new TimeSpan((long)m_mainSound.clip.length * 10000000);
+            m_nowPlayingTitleText.text = $"NOW PLAYING: {progress.ToString()} / {total.ToString()}";
+            m_scrubbar.value = (float)m_mainSound.time / (float)m_mainSound.clip.length;
         }
     }
 
