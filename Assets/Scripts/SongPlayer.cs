@@ -8,15 +8,24 @@ public class SongPlayer : MonoBehaviour
 
     #region Private Fields
 
+    // RPB: Components
+    private AudioSource m_audioSource;
+
+    // RPB: Time configurations
     private int m_partsToListenTo = 5;
     private float m_partPlaybackTimeSeconds = 5f;
     private float m_partPlaybackFadeTimeSeconds = 0.5f; // RPB: Must be less than half of playbacktime
-    private AudioSource m_audioSource;
+    private float m_seekIntervalSeconds = 30f;
+
+    // RPB: State
     public bool m_isHolding = false;
     private bool m_fullPlayOn = false;
-    private KeyCode m_holdSongKeycode = KeyCode.Space;
-
     private Coroutine m_songPlayCoroutine;
+
+    // RPB: Mappings
+    private KeyCode m_holdSongKeyCode = KeyCode.Space;
+    private KeyCode m_seekBackwardKeyCode = KeyCode.Comma;
+    private KeyCode m_seekForwardKeyCode = KeyCode.Percent;
 
     #endregion
 
@@ -46,9 +55,9 @@ public class SongPlayer : MonoBehaviour
 
     #region Public Methods
 
-    public void InitializeSettings(AudioSource audioSource, int parts, float fadeTimeSeconds, float sectionPlayTimeSeconds, float maxSectionPlaybackTime, KeyCode holdSongKeycode)
+    public void InitializeSettings(AudioSource audioSource, int parts, float fadeTimeSeconds, float sectionPlayTimeSeconds, float maxSectionPlaybackTime, float seekIntervalSeconds, KeyCode holdSongKeyCode, KeyCode seekForwardKeyCode, KeyCode seekBackwardKeyCode)
     {
-        if(audioSource == null)
+        if (audioSource == null)
         {
             Debug.LogError("Audiosource cannot be null!");
             return;
@@ -58,8 +67,11 @@ public class SongPlayer : MonoBehaviour
         m_partPlaybackTimeSeconds = sectionPlayTimeSeconds;
         m_partPlaybackFadeTimeSeconds = fadeTimeSeconds;
         m_audioSource = audioSource;
-        m_holdSongKeycode = holdSongKeycode;
-}
+        m_holdSongKeyCode = holdSongKeyCode;
+        m_seekBackwardKeyCode = seekBackwardKeyCode;
+        m_seekForwardKeyCode = seekForwardKeyCode;
+        m_seekIntervalSeconds = seekIntervalSeconds;
+    }
 
     public void PlaySong(AudioClip songClip)
     {
@@ -117,14 +129,40 @@ public class SongPlayer : MonoBehaviour
             {
                 if (m_audioSource.volume != 0f)
                 {
-                    m_audioSource.volume += (Time.deltaTime)/m_partPlaybackFadeTimeSeconds;
+                    m_audioSource.volume += (Time.deltaTime) / m_partPlaybackFadeTimeSeconds;
                 }
 
                 if (!m_audioSource.isPlaying)
                 {
                     m_audioSource.Play();
                 }
-                m_audioSource.loop = true;
+
+                if (m_audioSource.loop != true)
+                {
+                    m_audioSource.loop = true;
+                }
+
+                if (Input.GetKeyDown(m_seekBackwardKeyCode))
+                {
+                    // Seek Back
+                    if (m_audioSource.time - m_seekIntervalSeconds > 0f)
+                    {
+                        m_audioSource.time -= m_seekIntervalSeconds;
+                    }
+                    else
+                    {
+                        m_audioSource.time = 0;
+                    }
+                }
+
+                if (Input.GetKeyDown(m_seekForwardKeyCode))
+                {
+                    // Seek Forward
+                    if (m_audioSource.time + m_seekIntervalSeconds < m_audioSource.clip.length)
+                    {
+                        m_audioSource.time += m_seekIntervalSeconds;
+                    }
+                }
 
                 yield return null;
             }
@@ -157,7 +195,7 @@ public class SongPlayer : MonoBehaviour
 
                     m_isHolding = false;
 
-                    while (Input.GetKey(m_holdSongKeycode))
+                    while (Input.GetKey(m_holdSongKeyCode))
                     {
                         m_isHolding = true;
                         yield return null; // RPB: this lets us delay the fade
@@ -181,7 +219,7 @@ public class SongPlayer : MonoBehaviour
 
                     yield return null;
                 }
-            }           
+            }
         }
     }
 

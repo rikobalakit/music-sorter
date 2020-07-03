@@ -64,6 +64,8 @@ public class SongSortInterface : MonoBehaviour
     [SerializeField]
     private float m_partPlaybackFadeTimeSeconds = 0.5f;
 
+    private float m_seekIntervalSeconds = 30f;
+
 
     // RPB: UI
 
@@ -118,6 +120,8 @@ public class SongSortInterface : MonoBehaviour
     private KeyCode m_showStatisticsKeyCode = KeyCode.F3;
     private KeyCode m_showControlsKeyCode = KeyCode.F1;
     private KeyCode m_exitKeyCode = KeyCode.Escape;
+    private KeyCode m_seekForwardKeyCode = KeyCode.Percent;
+    private KeyCode m_seekBackwardKeyCode = KeyCode.Comma;
 
     // RPB: Paths
     private string m_songFolderSourceSongs = null;
@@ -149,7 +153,15 @@ public class SongSortInterface : MonoBehaviour
     private void InitializeComponents()
     {
         m_songPlayer = gameObject.AddComponent<SongPlayer>();
-        m_songPlayer.InitializeSettings(m_mainSound, m_partsToListenTo, m_partPlaybackFadeTimeSeconds, m_timeSlider.value, m_timeSlider.maxValue, m_holdSongKeyCode);
+        m_songPlayer.InitializeSettings(m_mainSound,
+            m_partsToListenTo,
+            m_partPlaybackFadeTimeSeconds,
+            m_timeSlider.value,
+            m_timeSlider.maxValue,
+            m_seekIntervalSeconds,
+            m_holdSongKeyCode,
+            m_seekForwardKeyCode,
+            m_seekBackwardKeyCode);
 
         m_importer = gameObject.AddComponent<NAudioImporter>();
 
@@ -220,6 +232,20 @@ public class SongSortInterface : MonoBehaviour
         {
             m_exitKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.ExitKeyCodeString);
         }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.SeekForwardKeyCodeString))
+        {
+            m_seekForwardKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.SeekForwardKeyCodeString);
+        }
+
+        // RPB: This is optional. If empty, will fall back to the default.
+        if (!string.IsNullOrEmpty(configuration.SeekBackwardKeyCodeString))
+        {
+            m_seekBackwardKeyCode = (KeyCode)System.Enum.Parse(typeof(KeyCode), configuration.SeekBackwardKeyCodeString);
+        }
+
+        m_seekIntervalSeconds = configuration.SeekIntervalSeconds;
 
         if (configuration.SkipBrowserDialogOnOpen)
         {
@@ -324,9 +350,9 @@ public class SongSortInterface : MonoBehaviour
             }
         }
 
-        if(Input.GetKeyDown(m_undoKeyCode)) // TODO-RPB: Make this settable
+        if(Input.GetKeyDown(m_undoKeyCode))
         {
-            m_statusText.text = $"[ SYSTEM ] UNDO!!!";
+            m_statusText.text = $"[ SYSTEM ] Undoing file move {Path.GetFileNameWithoutExtension(m_lastMoveNewPath)}";
             StartCoroutine(TryMoveFile(m_lastMoveNewPath, m_lastMoveOriginalPath));
         }
 
@@ -550,6 +576,7 @@ public class SongSortInterface : MonoBehaviour
             }
             catch (Exception e)
             {
+                Debug.LogError("Error trying to move file: " + e);
                 successUnlessError = false;
             }
 

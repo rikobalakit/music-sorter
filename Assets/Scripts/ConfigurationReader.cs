@@ -47,7 +47,9 @@ public class SongSortConfiguration
     public string ShowStatisticsKeyCodeString = "F3";
     public string ShowControlsKeyCodeString = "F1";
     public string ExitKeyCodeString = "Escape";
-
+    public string SeekForwardKeyCodeString = "Comma";
+    public string SeekBackwardKeyCodeString = "Period";
+    public float SeekIntervalSeconds = 30f;
     #endregion
 
 }

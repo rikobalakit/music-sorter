@@ -23,5 +23,8 @@
   "TogglePlaybackModeKeyCodeString": "F2",
   "ShowStatisticsKeyCodeString": "F3",
   "ShowControlsKeyCodeString": "F1",
-  "ExitKeyCodeString": "Escape"
+  "ExitKeyCodeString": "Escape",
+  "SeekForwardKeyCodeString": "Period",
+  "SeekBackwardKeyCodeString": "Comma",
+  "SeekIntervalSeconds": 30
 }

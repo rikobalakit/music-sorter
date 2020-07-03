@@ -1917,7 +1917,8 @@ MonoBehaviour:
     Controls:\n\nUp Arrow: \t\tLaunch Player\nDown Arrow: \tSkip Song\nLeft Arrow:
     \tReject song\nRight Arrow: \tAccept Song\nUndo: \t\t\tBackspace\nF1:\t\t\t\tShow
     Controls\nF2:\t\t\t\tToggle Play Mode\nEscape:\t\t\tExit\nSpace: \t\t\tHold Song
-    Section\n\nAdditional configuration options\nare available under\n%AppRoot%/MusicSorter_Data/StreamingAssets\n\nFollow
+    Section\n[,]:\t\t\tSeek Backwards\n[.]:\t\t\tSeek Forwards\n\nAdditional configuration
+    options\nare available under\n%AppRoot%/MusicSorter_Data/StreamingAssets\n\nFollow
     @DropTeamEpic, @KillScreenDJ, & @PearlGreyMusic on Twitter, Facebook, SoundCloud,
     and Instagram"
 --- !u!222 &1794468877
